@@ -12,4 +12,4 @@ Die Felddefinitionen befindet sich in der Datei `versions.js`. Dort können neue
 
 Der generierte Code wird in die Datei `./dist/decoder.js` geschrieben und kann dann in die TTN-Console kopiert werden: 
 
-![Screenshot TTN payload decoder](https://git.it.hs-heilbronn.de/jemaier/lorawan-akdt-hw/-/tree/develop/TTN/assets/screen-payload-decoder.jpg)
+![Screenshot TTN payload decoder](https://git.it.hs-heilbronn.de/jemaier/lorawan-akdt-hw/-/raw/develop/TTN/assets/screen-payload-decoder.jpg)
