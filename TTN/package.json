@@ -4,7 +4,7 @@
   "description": "",
   "main": "payload.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npx mocha",
     "lint": "npx eslint . --ext .js",
     "build": "node ./build.js"
   },
@@ -17,7 +17,8 @@
     "chai": "^4.2.0",
     "eslint": "^7.18.0",
     "mocha": "^8.2.1",
-    "prettier": "^2.2.1"
+    "prettier": "^2.2.1",
+    "require-from-string": "^2.0.2"
   },
   "dependencies": {}
 }

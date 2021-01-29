@@ -1,7 +1,8 @@
 const babel = require('@babel/core');
 const prettier = require('prettier');
 
-const WORD_SIZE = 32;
+const WORD_BIT_SIZE = 32;
+const VERSION_BYTE_SIZE = 1;
 
 function generateDecoder(versions) {
     const versionLength = versions.length;
@@ -52,7 +53,7 @@ function generateDecoder(versions) {
     `;
     for (let i = versionLength - 1; i >=0 ; i--) {
         const version = versions[i];
-        code += `decoders.v${version.number} = ${generateAnonymousDecodeFunction(version)};
+        code += `decoders.v${version.number} = ${generateAnonymousDecodeFunction(version, VERSION_BYTE_SIZE * 8)};
         
         `;
     }
@@ -60,7 +61,7 @@ function generateDecoder(versions) {
     return code;
 }
 
-function generateAnonymousDecodeFunction(version) {
+function generateAnonymousDecodeFunction(version, bitOffset) {
     const fields = version.fields;
 
     // Require 1 byte for version.
@@ -71,8 +72,8 @@ function generateAnonymousDecodeFunction(version) {
         const distinctValueCount = ((field.range.max - field.range.min) / field.resolution) + 1;
         const bits = Math.ceil(Math.log2(distinctValueCount));
         // Make sure that the field does not exceed the word size.
-        if (bits > WORD_SIZE) {
-            throw new Error(`Bit length of field "${field.name}" must not exceed ${WORD_SIZE} bits (actual: ${bits}).`);
+        if (bits > WORD_BIT_SIZE) {
+            throw new Error(`Bit length of field "${field.name}" must not exceed ${WORD_BIT_SIZE} bits (actual: ${bits}).`);
         }
         field.bits = bits;
         requiredBits += bits;
@@ -94,8 +95,8 @@ function generateAnonymousDecodeFunction(version) {
 
     `;
 
-    let byteIndex = 0;
-    let bitIndex = 0;
+    let byteIndex = bitOffset >>> 3;
+    let bitIndex = bitOffset & 7;
     for (let field of fields) {
         let bitsTotal = field.bits;
         let bitsLeft = field.bits;
@@ -138,7 +139,7 @@ function generateAnonymousDecodeFunction(version) {
                 // Increment byte index if all bits of its bits were read.
                 byteIndex += (bitIndex + read) >>> 3;
 
-                // Increase bit index and wrap if all if necessary.
+                // Increase bit index and wrap if necessary.
                 bitIndex = (bitIndex + read) & 7;
 
                 bitsLeft -= read;
@@ -173,7 +174,9 @@ function generateAnonymousDecodeFunction(version) {
 
 function generateDecoderCode(versions) {
     const code = generateDecoder(versions);
-    const transpiled = babel.transformSync(code);
+    const transpiled = babel.transformSync(code, {
+
+    });
     const beautified = prettier.format(transpiled.code, {
         printWidth: Number.MAX_SAFE_INTEGER,
         tabWidth: 4,
