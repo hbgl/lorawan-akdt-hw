@@ -14,7 +14,7 @@ npm run build:ttn
 
 Der JavaScript-Code zum Dekodieren von LoRaWAN-Nachrichten für das TNN-Backend wird anhand der Payload-Felder erstellt. Die Funktion ist in der Lage alle definierten Nachrichtenversionen zu dekodieren. Der generierte Code wird in die Datei `ttn/dist/decoder.js` geschrieben und kann daraus in die TTN-Console kopiert werden: 
 
-![Screenshot TTN payload decoder](https://git.it.hs-heilbronn.de/jemaier/lorawan-akdt-hw/-/raw/develop/TTN/assets/screen-payload-decoder.jpg)
+![Screenshot TTN payload decoder](https://git.it.hs-heilbronn.de/jemaier/lorawan-akdt-hw/-/raw/develop/Payload/assets/screen-payload-decoder.jpg)
 
 ### Testen
 
