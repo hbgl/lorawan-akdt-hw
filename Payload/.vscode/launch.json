@@ -5,10 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Test",
+            "name": "Launch TTN Test",
             "request": "launch",
             "runtimeArgs": [
-                "mocha"
+                "mocha",
+                "ttn/test.js"
             ],
             "runtimeExecutable": "npx",
             "skipFiles": [
@@ -17,13 +18,25 @@
             "type": "pwa-node"
         },
         {
+            "name": "Launch Node",
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}\\${file}"
+        },
+        {
+            "name": "Build and debug payload test",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\arduino\\target\\test.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal",
+            "preLaunchTask": "npm: build:arduino-test"
         }
     ]
 }

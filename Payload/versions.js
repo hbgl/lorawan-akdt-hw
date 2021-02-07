@@ -52,8 +52,8 @@ const fieldsVersion1 = [
 ];
 // #endregion
 
-const versions = [
-    { number: 1, fields: fieldsVersion1 },
-];
+const versions = {
+    '1': { number: 1, fields: fieldsVersion1 },
+};
 
 module.exports = versions;

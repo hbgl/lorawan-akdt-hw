@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build:arduino-test",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build:arduino-test",
+			"detail": "cd .\\arduino\\target & cl.exe /Zi /EHsc /nologo /Fe: .\\test.exe /Fo: .\\ ..\\test.cpp ..\\dist\\payload.cpp ..\\dist\\bit_writer.cpp"
+		}
+	]
+}
