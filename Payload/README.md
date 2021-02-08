@@ -63,7 +63,7 @@ Nachricht
 Messung
 | Bezeichnung             | Bits | Sensor   | Einheit | Bereich           | Genauigkeit | Auflösung |
 | ----------------------- | ---- | -------- | ------- | ----------------- | ----------- | --------- |
-| Measurement time offset | 12   |          | min     | 0min .. 4095min   | 1           | +- 0 min  |
+| Measurement time offset | 12   |          | min     | -4095min .. 0min  | 1           | +- 0 min  |
 | Ground temperature      | 8    | SMT50    | °C      | -20°C .. 85°C     | 0.5         | +- 0.8 °C |
 | Ground water content    | 6    | SMT50    | %       | 0% .. 50%         | 1           | +- 3 %    |
 | Illuminance             | 17   | VEML7700 | lx      | 0lx .. 120000lx   | 1           | +- 10%    |
@@ -73,7 +73,7 @@ Messung
 | Battery charge level    | 7    |          | %       | 0% .. 100%        | 1           | +- 0 %    |
 <br>
 
-Beispiel dekodiert:
+Beispiel:
 ```json
 {
     "version": 1,
@@ -89,7 +89,7 @@ Beispiel dekodiert:
             "battery": "50"
         },
         {
-            "timeOffset": "30",
+            "timeOffset": "-30",
             "temperatureGround": "42.5",
             "moistureGround": "25",
             "light": "60000",

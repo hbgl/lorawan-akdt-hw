@@ -33,10 +33,10 @@ void run_test_case(const TestCase& testCase);
 int main()
 {
     Reading reading1 = { 0.0f, 5.0f, 12.0f, 1200.0f, 7.0f, 76.0f, 1018.0f, 69.0f };
-    Reading reading2 = { 30.0f, 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f };
+    Reading reading2 = { -30.0f, 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f };
 
     auto expectedBinaryValues1 = std::vector<const char*> {
-        "0000 0000 0000", // Time offset
+        "1111 1111 1111", // Time offset
         "0011 0010", // Ground temperature
         "00 1100", // Ground moisture
         "0 0000 0100 1011 0000", // Illuminance
@@ -47,7 +47,7 @@ int main()
     };
 
     auto expectedBinaryValues2 = std::vector<const char*> {
-        "0000 0001 1110", // Time offset
+        "1111 1110 0001", // Time offset
         "0101 1000", // Ground temperature
         "00 0010", // Ground moisture
         "0 1100 0011 0101 0000", // Illuminance

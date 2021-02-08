@@ -3,7 +3,7 @@ const fieldsVersion1 = [
     {
         name: 'Measurement time offset',
         unit: 'min',
-        range: { min: 0, max: 4095 },
+        range: { min: -4095, max: 0 },
         resolution: 1,
         property: 'timeOffset',
         accuracy: 0,

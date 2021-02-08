@@ -11,7 +11,7 @@ describe('Integration', () => {
                 '0000 0001', // Version
                 '0000 0001', // Length
 
-                '0000 0000 0000', // Time offset
+                '1111 1111 1111', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -40,7 +40,7 @@ describe('Integration', () => {
                 '0000 0001', // Version
                 '0000 0100', // Length
 
-                '0000 0000 0000', // Time offset
+                '1111 1111 1111', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -49,7 +49,7 @@ describe('Integration', () => {
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
 
-                '0000 0001 1110', // Time offset
+                '1111 1110 0001', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -58,7 +58,7 @@ describe('Integration', () => {
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
 
-                '0000 0011 1100', // Time offset
+                '1111 1100 0011', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -67,7 +67,7 @@ describe('Integration', () => {
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
 
-                '0000 0101 1010', // Time offset
+                '1111 1010 0101', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -92,7 +92,7 @@ describe('Integration', () => {
                 assert.equal(measurement.moistureAir, '76');
                 assert.equal(measurement.pressure, '1018');
                 assert.equal(measurement.battery, '69');
-                offset += 30;
+                offset -= 30;
             }
         });
     });

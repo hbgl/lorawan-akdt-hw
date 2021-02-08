@@ -60,7 +60,7 @@ const versionSections = Object.values(versions).reverse().map(version => {
     const measurement1 = JSON.parse(JSON.stringify(sampleMeasurement));
     measurement1.timeOffset = '0';
     const measurement2 = JSON.parse(JSON.stringify(sampleMeasurement));
-    measurement2.timeOffset = '30';
+    measurement2.timeOffset = '-30';
 
     decodedSample[constants.MEASUREMENTS_PROPERTY] = [measurement1, measurement2];
 
