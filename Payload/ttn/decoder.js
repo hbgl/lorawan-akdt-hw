@@ -54,5 +54,7 @@ function Decoder(bytes, _port) {
     return decoded;
 }
 
-ttnglobal.Decoder = Decoder;
+if (typeof ttnglobal !== 'undefined') {
+    ttnglobal.Decoder = Decoder;
+}
 module.exports = Decoder;
