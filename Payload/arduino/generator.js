@@ -1,14 +1,11 @@
 const clangFormat = require('clang-format');
 const { spawnSync } = require('child_process');
-const { fieldBits, unparen } = require('../common/utilities');
+const { unparen, messageSizeInfo } = require('../common/utilities');
+const constants = require('../common/constants');
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 
-const VERSION_BITS = 8;
-const LENGTH_BITS = 8;
-const PAYLOAD_MAX_SIZE_BYTES = 51;
-const PAYLOAD_MAX_SIZE_BITS = PAYLOAD_MAX_SIZE_BYTES * 8;
 const PAYLOAD_STRUCT_NAME = 'Payload';
 const READING_DATA_STRUCT_NAME = 'Reading';
 const DATA_FIELD_NAME = 'data';
@@ -53,7 +50,7 @@ function generateHeaderCode(version, context) {
     };
 
     struct ${PAYLOAD_STRUCT_NAME} {
-        uint8_t ${DATA_FIELD_NAME}[${context.payloadBytesTotal}] = { 0 };
+        uint8_t ${DATA_FIELD_NAME}[${context.messageBytesMax}] = { 0 };
         static constexpr uint8_t ${VERSION_FIELD_NAME} = ${version.number};
         void ${FILL_FUNCTION_NAME}(const ${READING_DATA_STRUCT_NAME} * ${READING_PARAM_NAME}, size_t ${READING_PARAM_LENGTH});
     };
@@ -74,16 +71,16 @@ function generateImplementationCode(version, context) {
     #include <cmath>
     
     void ${PAYLOAD_STRUCT_NAME}::${FILL_FUNCTION_NAME}(const ${READING_DATA_STRUCT_NAME} * ${READING_PARAM_NAME}, size_t ${READING_PARAM_LENGTH}) {
-        ${READING_PARAM_LENGTH} = std::min(static_cast<size_t>(${context.readingsPerMessage}), ${READING_PARAM_LENGTH});
+        ${READING_PARAM_LENGTH} = std::min(static_cast<size_t>(${context.measurementsPerMessage}), ${READING_PARAM_LENGTH});
     `;
 
     code += `BitWriter bitWriter(${DATA_FIELD_NAME}, 0);
 
         // Write version.
-        bitWriter.write(${VERSION_FIELD_NAME}, ${VERSION_BITS});
+        bitWriter.write(${VERSION_FIELD_NAME}, ${constants.VERSION_BITS});
 
         // Write length.
-        bitWriter.write(${LENGTH_FIELD_NAME}, ${LENGTH_BITS});
+        bitWriter.write(${LENGTH_FIELD_NAME}, ${constants.MEASUREMENT_COUNT_BITS});
 
         for (size_t i = 0; i < ${READING_PARAM_LENGTH}; i++) {
             const auto& reading = ${READING_PARAM_NAME}[i];
@@ -136,32 +133,20 @@ function generateImplementationCode(version, context) {
 }
 
 function generateArduinoCode(version, options) {
-    const maxVersion = ~(~0 << VERSION_BITS);
+    const maxVersion = ~(~0 << constants.VERSION_BITS);
     if (version.number > maxVersion) {
         throw new Error(`The version number must not be greater than ${maxVersion}. Given: ${version.number}`);
     }
 
     const context = Object.assign({}, options);
 
-    version = JSON.parse(JSON.stringify(version));
-    const fields = version.fields;
-    for (let field of fields) {
-        field.bits = fieldBits(field);
-    }
-
     // Calculate payload and reading sizes.
-    const preludeBits = VERSION_BITS + LENGTH_BITS;
-    const payloadBitsMax = PAYLOAD_MAX_SIZE_BITS - preludeBits;
-    const readingBitsTotal = fields.reduce((sum, f) => sum + f.bits, 0);
-    const readingsPerMessage = readingBitsTotal === 0 ? 0 : Math.max(0, Math.floor(payloadBitsMax / readingBitsTotal));
-    const payloadBitsTotal = preludeBits + (readingsPerMessage * readingBitsTotal);
-    const payloadBytesTotal = Math.ceil(payloadBitsTotal / 8);
-    if (payloadBytesTotal > PAYLOAD_MAX_SIZE_BYTES) {
-        throw new Error(`The payload must not exceed ${PAYLOAD_MAX_SIZE_BYTES} bytes. Minimum required payload size: ${payloadBytesTotal} bytes`);
+    const messageSize = messageSizeInfo(version);
+    if (messageSize.messageBitsMin > messageSize.payloadBitsMax) {
+        throw new Error(`The payload must not exceed ${messageSize.payloadBitsMax} bits. Minimum required payload size: ${messageSize.messageBitsMin} bits.`);
     }
-    context.payloadBitsTotal = payloadBitsTotal;
-    context.payloadBytesTotal = payloadBytesTotal;
-    context.readingsPerMessage = readingsPerMessage;
+    context.messageBytesMax = messageSize.messageBytesMax;
+    context.measurementsPerMessage = messageSize.measurementsPerMessage;
 
     const headerCode = generateHeaderCode(version, context);
     const beautifiedHeaderCode = formatCode(headerCode);

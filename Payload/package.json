@@ -9,7 +9,11 @@
     "build:arduino": "node ./arduino/generator.js",
     "test:ttn": "npx mocha ./ttn/test.js",
     "build:arduino-test": "cd .\\arduino\\target & cl.exe /Zi /EHsc /nologo /Fe: .\\test.exe /Fo: .\\ ..\\test.cpp ..\\dist\\payload.cpp ..\\dist\\bit_writer.cpp",
-    "test:arduino": "npm run build:arduino-test & cd .\\arduino\\target & test.exe"
+    "test:arduino": "npm run build:arduino & npm run build:arduino-test & cd .\\arduino\\target & test.exe",
+    "doxgen": "node doxgen.js",
+    "build": "run-s build:ttn build:arduino doxgen",
+    "test": "run-s test:ttn test:arduino",
+    "clean": "node clean.js"
   },
   "author": "",
   "license": "ISC",
@@ -20,9 +24,14 @@
     "babel-loader": "^8.2.2",
     "chai": "^4.2.0",
     "clang-format": "^1.5.0",
+    "del": "^6.0.0",
     "eslint": "^7.18.0",
+    "install": "^0.13.0",
     "lodash": "^4.17.20",
+    "markdown-table": "^2.0.0",
     "mocha": "^8.2.1",
+    "npm": "^7.5.2",
+    "npm-run-all": "^4.1.5",
     "terser-webpack-plugin": "^5.1.1",
     "webpack": "^5.21.1",
     "webpack-cli": "^4.5.0"

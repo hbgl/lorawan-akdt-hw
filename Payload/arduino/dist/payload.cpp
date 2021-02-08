@@ -7,7 +7,7 @@
 #include "payload.h"
 
 void Payload::fill(const Reading* readings, size_t length) {
-  length = std::min(static_cast<size_t>(6), length);
+  length = std::min(static_cast<size_t>(5), length);
   BitWriter bitWriter(data, 0);
 
   // Write version.
@@ -18,6 +18,10 @@ void Payload::fill(const Reading* readings, size_t length) {
 
   for (size_t i = 0; i < length; i++) {
     const auto& reading = readings[i];
+
+    // 12-bit Measurement time offset 0min .. 4095min in 1min increments.
+    uint32_t timeOffsetRaw = std::round(std::max(0.0f, std::min(reading.timeOffset, 4095.0f)));
+    bitWriter.write(timeOffsetRaw, 12);
 
     // 8-bit Ground temperature -20°C .. 85°C in 0.5°C increments.
     uint32_t temperatureGroundRaw = std::round((std::max(-20.0f, std::min(reading.temperatureGround, 85.0f)) + 20.0f) / 0.5f);

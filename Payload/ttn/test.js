@@ -2,6 +2,7 @@ const { describe, it } = require('mocha');
 const assert = require('chai').assert;
 const { BitReader } = require('../common/bit-reader');
 const decoder = require('./decoder');
+const constants = require('../common/constants');
 
 describe('Integration', () => {
     describe('version 1', () => {
@@ -9,6 +10,8 @@ describe('Integration', () => {
             const bytes = parseBinStrValues([
                 '0000 0001', // Version
                 '0000 0001', // Length
+
+                '0000 0000 0000', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -18,11 +21,12 @@ describe('Integration', () => {
                 '100 0101', // Battery charge level
             ]);
             const result = decoder(bytes, 1);
-            const measurements = result.measurements;
-            assert.equal(result.version, 1);
+            const measurements = result[constants.MEASUREMENTS_PROPERTY];
+            assert.equal(result[constants.VERSION_PROPERTY], 1);
             assert.equal(measurements.length, 1);
 
             const measurement = measurements[0];
+            assert.equal(measurement.timeOffset, '0');
             assert.equal(measurement.temperatureGround, '5.0');
             assert.equal(measurement.moistureGround, '12');
             assert.equal(measurement.light, '1200');
@@ -35,6 +39,8 @@ describe('Integration', () => {
             const bytes = parseBinStrValues([
                 '0000 0001', // Version
                 '0000 0100', // Length
+
+                '0000 0000 0000', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -42,6 +48,8 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+
+                '0000 0001 1110', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -49,6 +57,8 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+
+                '0000 0011 1100', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -56,6 +66,8 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+
+                '0000 0101 1010', // Time offset
                 '0011 0010', // Ground temperature
                 '00 1100', // Ground moisture
                 '0 0000 0100 1011 0000', // Illuminance
@@ -65,12 +77,14 @@ describe('Integration', () => {
                 '100 0101', // Battery charge level
             ]);
             const result = decoder(bytes, 1);
-            const measurements = result.measurements;
-            assert.equal(result.version, 1);
+            const measurements = result[constants.MEASUREMENTS_PROPERTY];
+            assert.equal(result[constants.VERSION_PROPERTY], 1);
             assert.equal(measurements.length, 4);
 
+            let offset = 0;
             for (let i = 0; i < measurements.length; i++) {
                 const measurement = measurements[i];
+                assert.equal(measurement.timeOffset, offset.toString());
                 assert.equal(measurement.temperatureGround, '5.0');
                 assert.equal(measurement.moistureGround, '12');
                 assert.equal(measurement.light, '1200');
@@ -78,6 +92,7 @@ describe('Integration', () => {
                 assert.equal(measurement.moistureAir, '76');
                 assert.equal(measurement.pressure, '1018');
                 assert.equal(measurement.battery, '69');
+                offset += 30;
             }
         });
     });

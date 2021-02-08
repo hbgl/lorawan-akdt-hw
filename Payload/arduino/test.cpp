@@ -32,10 +32,11 @@ void run_test_case(const TestCase& testCase);
 
 int main()
 {
-    Reading reading1 = { 5.0f, 12.0f, 1200.0f, 7.0f, 76.0f, 1018.0f, 69.0f };
-    Reading reading2 = { 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f };
+    Reading reading1 = { 0.0f, 5.0f, 12.0f, 1200.0f, 7.0f, 76.0f, 1018.0f, 69.0f };
+    Reading reading2 = { 30.0f, 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f };
 
     auto expectedBinaryValues1 = std::vector<const char*> {
+        "0000 0000 0000", // Time offset
         "0011 0010", // Ground temperature
         "00 1100", // Ground moisture
         "0 0000 0100 1011 0000", // Illuminance
@@ -46,6 +47,7 @@ int main()
     };
 
     auto expectedBinaryValues2 = std::vector<const char*> {
+        "0000 0001 1110", // Time offset
         "0101 1000", // Ground temperature
         "00 0010", // Ground moisture
         "0 1100 0011 0101 0000", // Illuminance
@@ -85,7 +87,7 @@ void run_test_case(const TestCase& testCase) {
     test(payload.version == testCase.version, string_format("Invalid version.\nExpected: %u\nActual: %u", payload.version, testCase.version));
 
     // Test correct message size.
-    test(sizeof(payload.data) == 50, string_format("Invalid payload data size.\nExpected: 50\nActual: %zu", sizeof(payload.data)));
+    test(sizeof(payload.data) == 49, string_format("Invalid payload data size.\nExpected: 50\nActual: %zu", sizeof(payload.data)));
 
     // Fill payload with data.
     payload.fill(testCase.readings.data(), testCase.readings.size());

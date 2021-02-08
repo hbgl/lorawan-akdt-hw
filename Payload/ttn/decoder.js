@@ -1,7 +1,7 @@
 const { BitReader } = require('../common/bit-reader');
 const versions = require('../versions');
 const constants = require('../common/constants');
-const { fieldBits, fractionDigits } = require('../common/utilities');
+const { messageSizeInfo } = require('../common/utilities');
 
 this.Decoder = function(bytes, _port) {
     // There must be at least one byte given for the version.
@@ -16,34 +16,25 @@ this.Decoder = function(bytes, _port) {
         throw new Error('Unknown message version: '.concat(version));
     }
 
-    // Calculate bits used by a field.
     const fields = messageFormat.fields;
-    for (let field of fields) {
-        field.bits = fieldBits(field);
-        field.fractionDigits = fractionDigits(field.resolution);
-    }
-
-    const preludeBits = constants.VERSION_BITS + constants.MEASUREMENT_COUNT_BITS;
-    const measurementBits = fields.reduce((sum, f) => sum + f.bits, 0);
-    const minBytes = Math.ceil((preludeBits + measurementBits) / 8);
+    const sizeInfo = messageSizeInfo(messageFormat);
 
     // Check that enough bytes were received.
-    if (bytes.length < minBytes) {
-        throw new Error(`Not enough bytes received. Minimum: ${messageFormat.minBytes} bytes, received: ${bytes.length} bytes.`);
+    if (bytes.length < sizeInfo.messageBytesMin) {
+        throw new Error(`Not enough bytes received. Minimum: ${sizeInfo.messageBytesMin} bytes, received: ${bytes.length} bytes.`);
     }
 
     const measurementCount = bitReader.read(constants.MEASUREMENT_COUNT_BITS);
-    const expectedBytes = Math.ceil((preludeBits + (measurementBits * measurementCount) )/ 8);
+    const expectedBytes = Math.ceil((sizeInfo.preludeBits + (sizeInfo.measurementBits * measurementCount)) / 8);
 
     // Check that the message is exactly the right size.
     if (bytes.length !== expectedBytes) {
         throw new Error(`Expected message size for ${measurementCount} measurements to be exactly ${expectedBytes} bytes. Received: ${bytes.length}.`);
     }
 
-    const decoded = {
-        version: version,
-        measurements: [],
-    };
+    const decoded = {};
+    decoded[constants.VERSION_PROPERTY] = version;
+    decoded[constants.MEASUREMENTS_PROPERTY] = [];
 
     for (let i = 0; i < measurementCount; i++) {
         const measurement = {};
@@ -52,7 +43,7 @@ this.Decoder = function(bytes, _port) {
             const value = rawValue * field.resolution + field.range.min;
             measurement[field.property] = value.toFixed(field.fractionDigits);
         }
-        decoded.measurements.push(measurement);
+        decoded[constants.MEASUREMENTS_PROPERTY].push(measurement);
     }
 
     // Call decode function for version

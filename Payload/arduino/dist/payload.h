@@ -4,6 +4,7 @@
 #include <cstdint>
 
 struct Reading {
+  float timeOffset;
   float temperatureGround;
   float moistureGround;
   float light;
@@ -14,7 +15,7 @@ struct Reading {
 };
 
 struct Payload {
-  uint8_t data[50] = {0};
+  uint8_t data[49] = {0};
   static constexpr uint8_t version = 1;
   void fill(const Reading* readings, size_t length);
 };
