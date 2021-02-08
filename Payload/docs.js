@@ -43,7 +43,6 @@ const versionSections = Object.values(versions).reverse().map(version => {
     const decodedSample = {};
     const sampleMeasurement = {};
     decodedSample[constants.VERSION_PROPERTY] = version.number;
-    decodedSample[constants.MEASUREMENTS_PROPERTY] = [sampleMeasurement];
 
     for (let field of version.fields) {
         sampleMeasurement[field.property] = (field.range.max / 2).toFixed(field.fractionDigits);
@@ -57,6 +56,13 @@ const versionSections = Object.values(versions).reverse().map(version => {
             formatFieldAccuracy(field),
         ]);
     }
+
+    const measurement1 = JSON.parse(JSON.stringify(sampleMeasurement));
+    measurement1.timeOffset = 0;
+    const measurement2 = JSON.parse(JSON.stringify(sampleMeasurement));
+    measurement2.timeOffset = 30;
+
+    decodedSample[constants.MEASUREMENTS_PROPERTY] = [measurement1, measurement2];
 
     messageTable.markdown = markdownTable(messageTable.rows);
     measurementTable.markdown = markdownTable(measurementTable.rows);

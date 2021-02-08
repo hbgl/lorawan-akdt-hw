@@ -79,7 +79,17 @@ Beispiel:
     "version": 1,
     "measurements": [
         {
-            "timeOffset": "2048",
+            "timeOffset": 0,
+            "temperatureGround": "42.5",
+            "moistureGround": "25",
+            "light": "60000",
+            "temperatureAir": "40.0",
+            "moistureAir": "50",
+            "pressure": "550",
+            "battery": "50"
+        },
+        {
+            "timeOffset": 30,
             "temperatureGround": "42.5",
             "moistureGround": "25",
             "light": "60000",
@@ -97,7 +107,7 @@ Beispiel:
 
 Aktualisieren der Versionsdokumentation in diesem README:
 ```
-npm run buid:dox
+npm run buid:docs
 ```
 
 ## Weitere Befehle
