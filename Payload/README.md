@@ -79,7 +79,7 @@ Beispiel:
     "version": 1,
     "measurements": [
         {
-            "timeOffset": 0,
+            "timeOffset": "0",
             "temperatureGround": "42.5",
             "moistureGround": "25",
             "light": "60000",
@@ -89,7 +89,7 @@ Beispiel:
             "battery": "50"
         },
         {
-            "timeOffset": 30,
+            "timeOffset": "30",
             "temperatureGround": "42.5",
             "moistureGround": "25",
             "light": "60000",
