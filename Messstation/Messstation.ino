@@ -23,6 +23,7 @@
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include <Adafruit_SleepyDog.h>
 
 //for SMT50
 #define groundTempPin A0
@@ -42,54 +43,41 @@ Adafruit_BME280 bme;
 float groundTemp = 0;
 float groundHum = 0;
 
+//for BME280
+float airTemp = 0;
+float airHum = 0;
+float airPress = 0;
+
 //for VEML7700
 float light = 0;
 
 void setup() {
-  Serial.begin(9600);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
   setupVeml7700();
   setupBME280();
 }
 
 void loop() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  
   getGroundValues();
   getLightValues();
   getAirValues();
 
+  digitalWrite(LED_BUILTIN, LOW);
   delay(1000);
+  for(int i = 0; i <= 2; i++){  //449 mal für eine Stunde
+    Watchdog.sleep(8000);
+  } 
 }
 
 void setupVeml7700(){
-  while (!Serial) { delay(10); }
-  Serial.println("Adafruit VEML7700 Test");
-
-  if (!veml.begin()) {
-    Serial.println("Sensor not found");
-    while (1);
-  }
-  Serial.println("Sensor found");
-
+  veml.begin();
   veml.setGain(VEML7700_GAIN_1);
   veml.setIntegrationTime(VEML7700_IT_800MS);
-
-  Serial.print(F("Gain: "));
-  switch (veml.getGain()) {
-    case VEML7700_GAIN_1: Serial.println("1"); break;
-    case VEML7700_GAIN_2: Serial.println("2"); break;
-    case VEML7700_GAIN_1_4: Serial.println("1/4"); break;
-    case VEML7700_GAIN_1_8: Serial.println("1/8"); break;
-  }
-
-  Serial.print(F("Integration Time (ms): "));
-  switch (veml.getIntegrationTime()) {
-    case VEML7700_IT_25MS: Serial.println("25"); break;
-    case VEML7700_IT_50MS: Serial.println("50"); break;
-    case VEML7700_IT_100MS: Serial.println("100"); break;
-    case VEML7700_IT_200MS: Serial.println("200"); break;
-    case VEML7700_IT_400MS: Serial.println("400"); break;
-    case VEML7700_IT_800MS: Serial.println("800"); break;
-  }
-
+  
   //veml.powerSaveEnable(true);
   //veml.setPowerSaveMode(VEML7700_POWERSAVE_MODE4);
 
@@ -99,25 +87,10 @@ void setupVeml7700(){
 }
 
 void setupBME280(){
-    while(!Serial);    // time to get serial running
-    Serial.println(F("BME280 test"));
-
     unsigned status;
     
     // default settings
-    status = bme.begin(0x76);  
-    if (!status) {
-        Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-        Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
-        Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
-        Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
-        Serial.print("        ID of 0x60 represents a BME 280.\n");
-        Serial.print("        ID of 0x61 represents a BME 680.\n");
-        while (1) delay(10);
-    }
-    
-    Serial.println("-- Default Test --");
-    Serial.println();
+    status = bme.begin(0x76);
 }
 
 void getGroundValues(){
@@ -128,41 +101,14 @@ void getGroundValues(){
   groundHum = analogRead(groundHumPin);
   groundHum = groundHum * 2 * 3.3 /1024;
   groundHum = groundHum / 2 * 50 / 3;
-
-  Serial.print("Bodentemperatur: ");
-  Serial.print(String(groundTemp));
-  Serial.println("°C");
-
-  Serial.print("Bodenfeuchtigkeit: ");
-  Serial.print(String(groundHum));
-  Serial.println("%");
 }
 
 void getLightValues(){
   light = veml.readLux();
-  Serial.print("Lux: "); Serial.println(String(light));
-
-  uint16_t irq = veml.interruptStatus();
-  if (irq & VEML7700_INTERRUPT_LOW) {
-    Serial.println("** Low threshold"); 
-  }
-  if (irq & VEML7700_INTERRUPT_HIGH) {
-    Serial.println("** High threshold"); 
-  }
 }
 
 void getAirValues(){
-    Serial.print("Lufttemperatur: ");
-    Serial.print(bme.readTemperature());
-    Serial.println(" °C");
-
-    Serial.print("Luftdruck: ");
-    Serial.print(bme.readPressure() / 100.0F);
-    Serial.println(" hPa");
-
-    Serial.print("Luftfeuchtigkeit: ");
-    Serial.print(bme.readHumidity());
-    Serial.println(" %");
-
-    Serial.println();
+    airTemp = bme.readTemperature();
+    airPress = bme.readPressure() / 100.0F;
+    airHum = bme.readHumidity();
 }
