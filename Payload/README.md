@@ -97,7 +97,7 @@ Beispiel:
 
 Aktualisieren der Versionsdokumentation in diesem README:
 ```
-npm run doxgen
+npm run buid:dox
 ```
 
 ## Weitere Befehle
