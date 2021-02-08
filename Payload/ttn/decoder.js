@@ -3,7 +3,7 @@ const versions = require('../versions');
 const constants = require('../common/constants');
 const { messageSizeInfo } = require('../common/utilities');
 
-this.Decoder = function(bytes, _port) {
+function Decoder(bytes, _port) {
     // There must be at least one byte given for the version.
     if (bytes.length === 0) {
         throw new Error('Empty message received.');
@@ -25,6 +25,10 @@ this.Decoder = function(bytes, _port) {
     }
 
     const measurementCount = bitReader.read(constants.MEASUREMENT_COUNT_BITS);
+    if (measurementCount <= 0) {
+        throw new Error('Expected measurement count to be greater than 0.');
+    }
+
     const expectedBytes = Math.ceil((sizeInfo.preludeBits + (sizeInfo.measurementBits * measurementCount)) / 8);
 
     // Check that the message is exactly the right size.
@@ -48,6 +52,7 @@ this.Decoder = function(bytes, _port) {
 
     // Call decode function for version
     return decoded;
-};
+}
 
-module.exports = this.Decoder;
+ttnglobal.Decoder = Decoder;
+module.exports = Decoder;

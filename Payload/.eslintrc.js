@@ -8,7 +8,7 @@ module.exports = {
         'ecmaVersion': 6,
     },
     'globals': {
-        'global': 'writable',
+        'ttnglobal': 'readable',
     },
     'rules': {
         'indent': [

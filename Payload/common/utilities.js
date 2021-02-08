@@ -3,7 +3,7 @@ const constants = require('./constants');
 function fieldBits(field) {
     // Calculate bits used by field.
     const distinctValueCount = ((field.range.max - field.range.min) / field.resolution) + 1;
-    const bits = Math.ceil(Math.log2(distinctValueCount));
+    const bits = Math.ceil(Math.log(distinctValueCount) / Math.log(2));
     return bits;
 }
 
