@@ -73,7 +73,7 @@ Messung
 | Battery charge level    | 7    |          | %       | 0% .. 100%        | 1           | +- 0 %    |
 <br>
 
-Beispiel:
+Beispiel dekodiert:
 ```json
 {
     "version": 1,
