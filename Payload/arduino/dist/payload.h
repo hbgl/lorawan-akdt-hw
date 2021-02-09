@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-struct Reading {
+struct Measurement {
   float timeOffset;
   float temperatureGround;
   float moistureGround;
@@ -17,7 +17,8 @@ struct Reading {
 struct Payload {
   uint8_t data[49] = {0};
   static constexpr uint8_t version = 1;
-  void fill(const Reading* readings, size_t length);
+  static constexpr size_t measurements_per_message = 5;
+  void fill(const Measurement* measurements, size_t length);
 };
 
 #endif

@@ -24,7 +24,7 @@ void append_vec(std::vector<T>& vec, const std::vector<T>& other);
 struct TestCase {
     uint8_t version;
     size_t messageSize;
-    std::vector<Reading> readings;
+    std::vector<Measurement> measurements;
     std::vector<const char *> expectedBinaryValues;
 };
 
@@ -32,8 +32,8 @@ void run_test_case(const TestCase& testCase);
 
 int main()
 {
-    Reading reading1 = { 0.0f, 5.0f, 12.0f, 1200.0f, 7.0f, 76.0f, 1018.0f, 69.0f };
-    Reading reading2 = { -30.0f, 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f };
+    Measurement measurement1 = { 0.0f, 5.0f, 12.0f, 1200.0f, 7.0f, 76.0f, 1018.0f, 69.0f };
+    Measurement measurement2 = { -30.0f, 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f };
 
     auto expectedBinaryValues1 = std::vector<const char*> {
         "1111 1111 1111", // Time offset
@@ -60,11 +60,11 @@ int main()
     TestCase testCase;
     testCase.version = 1;
     testCase.messageSize = 50;
-    testCase.readings = std::vector<Reading> {
-        reading1,
-        reading2,
-        reading2,
-        reading1,
+    testCase.measurements = std::vector<Measurement> {
+        measurement1,
+        measurement2,
+        measurement2,
+        measurement1,
     };
     testCase.expectedBinaryValues = {
         "0000 0001", // Version
@@ -90,7 +90,7 @@ void run_test_case(const TestCase& testCase) {
     test(sizeof(payload.data) == 49, string_format("Invalid payload data size.\nExpected: 50\nActual: %zu", sizeof(payload.data)));
 
     // Fill payload with data.
-    payload.fill(testCase.readings.data(), testCase.readings.size());
+    payload.fill(testCase.measurements.data(), testCase.measurements.size());
 
     auto expectedBinary = join_binary_values(testCase.expectedBinaryValues);
     expectedBinary.insert(expectedBinary.end(), sizeof(payload.data) * 8 - expectedBinary.size(), '0');
@@ -142,18 +142,18 @@ std::string join_binary_values(const std::vector<const char*>& values) {
     }
     str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
 
-    auto expectedBinary = std::string();
-    expectedBinary.reserve(str.length());
+    auto binary = std::string();
+    binary.reserve(str.length());
     int remaining = str.length();
     while (remaining > 0) {
         auto pos = std::max(remaining - 8, 0);
         auto len = std::min(remaining, 8);
-        expectedBinary.append(8 - len, '0');
-        expectedBinary.append(str, pos, len);
+        binary.append(8 - len, '0');
+        binary.append(str, pos, len);
         remaining -= len;
 
     }
-    return expectedBinary;
+    return binary;
 }
 
 

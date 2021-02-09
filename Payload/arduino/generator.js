@@ -7,13 +7,14 @@ const path = require('path');
 const _ = require('lodash');
 
 const PAYLOAD_STRUCT_NAME = 'Payload';
-const READING_DATA_STRUCT_NAME = 'Reading';
+const MEASUREMENT_DATA_STRUCT_NAME = 'Measurement';
 const DATA_FIELD_NAME = 'data';
 const VERSION_FIELD_NAME = 'version';
+const MEASUREMENTS_PER_MESSAGE_FIELD_NAME = 'measurements_per_message';
 const LENGTH_FIELD_NAME = 'length';
 const FILL_FUNCTION_NAME = 'fill';
-const READING_PARAM_NAME = 'readings';
-const READING_PARAM_LENGTH = 'length';
+const MEASUREMENTS_PARAM_NAME = 'measurements';
+const MEASUREMENTS_PARAM_LENGTH = 'length';
 const BIT_WRITER_HEADER = 'bit_writer.h';
 
 function formatCode(code) {
@@ -45,14 +46,15 @@ function generateHeaderCode(version, context) {
 
     #include <cstdint>
 
-    struct ${READING_DATA_STRUCT_NAME} {
+    struct ${MEASUREMENT_DATA_STRUCT_NAME} {
         ${fields.map(f => `float ${f.property};`).join('\n')}
     };
 
     struct ${PAYLOAD_STRUCT_NAME} {
         uint8_t ${DATA_FIELD_NAME}[${context.messageBytesMax}] = { 0 };
         static constexpr uint8_t ${VERSION_FIELD_NAME} = ${version.number};
-        void ${FILL_FUNCTION_NAME}(const ${READING_DATA_STRUCT_NAME} * ${READING_PARAM_NAME}, size_t ${READING_PARAM_LENGTH});
+        static constexpr size_t ${MEASUREMENTS_PER_MESSAGE_FIELD_NAME} = ${context.measurementsPerMessage};
+        void ${FILL_FUNCTION_NAME}(const ${MEASUREMENT_DATA_STRUCT_NAME} * ${MEASUREMENTS_PARAM_NAME}, size_t ${MEASUREMENTS_PARAM_LENGTH});
     };
 
     #endif
@@ -70,8 +72,8 @@ function generateImplementationCode(version, context) {
     #include "${BIT_WRITER_HEADER}"
     #include <cmath>
     
-    void ${PAYLOAD_STRUCT_NAME}::${FILL_FUNCTION_NAME}(const ${READING_DATA_STRUCT_NAME} * ${READING_PARAM_NAME}, size_t ${READING_PARAM_LENGTH}) {
-        ${READING_PARAM_LENGTH} = std::min(static_cast<size_t>(${context.measurementsPerMessage}), ${READING_PARAM_LENGTH});
+    void ${PAYLOAD_STRUCT_NAME}::${FILL_FUNCTION_NAME}(const ${MEASUREMENT_DATA_STRUCT_NAME} * ${MEASUREMENTS_PARAM_NAME}, size_t ${MEASUREMENTS_PARAM_LENGTH}) {
+        ${MEASUREMENTS_PARAM_LENGTH} = std::min(static_cast<size_t>(${context.measurementsPerMessage}), ${MEASUREMENTS_PARAM_LENGTH});
     `;
 
     code += `BitWriter bitWriter(${DATA_FIELD_NAME}, 0);
@@ -82,8 +84,8 @@ function generateImplementationCode(version, context) {
         // Write length.
         bitWriter.write(${LENGTH_FIELD_NAME}, ${constants.MEASUREMENT_COUNT_BITS});
 
-        for (size_t i = 0; i < ${READING_PARAM_LENGTH}; i++) {
-            const auto& reading = ${READING_PARAM_NAME}[i];
+        for (size_t i = 0; i < ${MEASUREMENTS_PARAM_LENGTH}; i++) {
+            const auto& measurement = ${MEASUREMENTS_PARAM_NAME}[i];
 
     `;
 
@@ -99,7 +101,7 @@ function generateImplementationCode(version, context) {
         }
 
         // Clamp value to min and max.
-        let rawExpr = `std::max(${floatify(field.range.min)}, std::min(reading.${field.property}, ${floatify(field.range.max)}))`;
+        let rawExpr = `std::max(${floatify(field.range.min)}, std::min(measurement.${field.property}, ${floatify(field.range.max)}))`;
 
         // Align value.
         let minValue = field.range.min;
@@ -140,7 +142,7 @@ function generateArduinoCode(version, options) {
 
     const context = Object.assign({}, options);
 
-    // Calculate payload and reading sizes.
+    // Calculate payload and measurement sizes.
     const messageSize = messageSizeInfo(version);
     if (messageSize.messageBitsMin > messageSize.payloadBitsMax) {
         throw new Error(`The payload must not exceed ${messageSize.payloadBitsMax} bits. Minimum required payload size: ${messageSize.messageBitsMin} bits.`);
