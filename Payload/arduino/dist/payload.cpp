@@ -7,7 +7,7 @@
 #include "payload.h"
 
 void Payload::fill(const Measurement* measurements, size_t length) {
-  length = std::min(static_cast<size_t>(5), length);
+  length = std::min(static_cast<size_t>(4), length);
   BitWriter bitWriter(data, 0);
 
   // Write version.
@@ -50,5 +50,9 @@ void Payload::fill(const Measurement* measurements, size_t length) {
     // 7-bit Battery charge level 0% .. 100% in 1% increments.
     uint32_t batteryRaw = std::round(std::max(0.0f, std::min(measurement.battery, 100.0f)));
     bitWriter.write(batteryRaw, 7);
+
+    // 8-bit Battery voltage 2.8% .. 4.2% in 0.01% increments.
+    uint32_t batteryVoltageRaw = std::round((std::max(2.8f, std::min(measurement.batteryVoltage, 4.2f)) - 2.8f) / 0.01f);
+    bitWriter.write(batteryVoltageRaw, 8);
   }
 }

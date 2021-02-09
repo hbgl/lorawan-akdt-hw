@@ -57,7 +57,7 @@ Nachricht
 | ---------------- | --------- | ------------------------------------------ |
 | Version          | 8         | Versionsnummer des Nachrichtenformats.     |
 | Anzahl Messungen | 8         | Anzahl der Messungen in dieser Nachricht.  |
-| Messungen        | 75 {1, 5} | 1 bis 5 Messungen pro Nachricht je 75 Bits |
+| Messungen        | 83 {1, 4} | 1 bis 4 Messungen pro Nachricht je 83 Bits |
 <br>
 
 Messung
@@ -71,6 +71,7 @@ Messung
 | Relative air humidity   | 7    | BME280   | %       | 0% .. 100%        | 1           | +- 3 %    |
 | Barometric pressure     | 10   | BME280   | hPa     | 300hPa .. 1100hPa | 1           | +- 1 hPa  |
 | Battery charge level    | 7    |          | %       | 0% .. 100%        | 1           | +- 0 %    |
+| Battery voltage         | 8    |          | %       | 2.8% .. 4.2%      | 0.01        | +- 0 %    |
 <br>
 
 Beispiel:
@@ -86,7 +87,8 @@ Beispiel:
             "temperatureAir": "40.0",
             "moistureAir": "50",
             "pressure": "550",
-            "battery": "50"
+            "battery": "50",
+            "batteryVoltage": "2.10"
         },
         {
             "timeOffset": "-30",
@@ -96,7 +98,8 @@ Beispiel:
             "temperatureAir": "40.0",
             "moistureAir": "50",
             "pressure": "550",
-            "battery": "50"
+            "battery": "50",
+            "batteryVoltage": "2.10"
         }
     ]
 }

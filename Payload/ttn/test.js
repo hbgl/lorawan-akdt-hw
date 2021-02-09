@@ -19,6 +19,7 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+                '0110 1110', // Battery voltage
             ]);
             const result = decoder(bytes, 1);
             const measurements = result[constants.MEASUREMENTS_PROPERTY];
@@ -34,6 +35,7 @@ describe('Integration', () => {
             assert.equal(measurement.moistureAir, '76');
             assert.equal(measurement.pressure, '1018');
             assert.equal(measurement.battery, '69');
+            assert.equal(measurement.batteryVoltage, '3.90');
         });
         it('normal case many measurements', () => {
             const bytes = parseBinStrValues([
@@ -48,6 +50,7 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+                '0110 1110', // Battery voltage
 
                 '1111 1110 0001', // Time offset
                 '0011 0010', // Ground temperature
@@ -57,6 +60,7 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+                '0110 1110', // Battery voltage
 
                 '1111 1100 0011', // Time offset
                 '0011 0010', // Ground temperature
@@ -66,6 +70,7 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+                '0110 1110', // Battery voltage
 
                 '1111 1010 0101', // Time offset
                 '0011 0010', // Ground temperature
@@ -75,6 +80,7 @@ describe('Integration', () => {
                 '100 1100', // Air humidity
                 '10 1100 1110', // Air pressure
                 '100 0101', // Battery charge level
+                '0110 1110', // Battery voltage
             ]);
             const result = decoder(bytes, 1);
             const measurements = result[constants.MEASUREMENTS_PROPERTY];

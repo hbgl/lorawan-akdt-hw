@@ -32,8 +32,8 @@ void run_test_case(const TestCase& testCase);
 
 int main()
 {
-    Measurement measurement1 = { 0.0f, 5.0f, 12.0f, 1200.0f, 7.0f, 76.0f, 1018.0f, 69.0f };
-    Measurement measurement2 = { -30.0f, 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f };
+    Measurement measurement1 = { 0.0f, 5.0f, 12.0f, 1200.0f, 7.0f, 76.0f, 1018.0f, 69.0f, 3.9f };
+    Measurement measurement2 = { -30.0f, 24.0f, 2.0f, 50000.0f, 34.0f, 50.0f, 1058.0f, 43.0f, 3.5f };
 
     auto expectedBinaryValues1 = std::vector<const char*> {
         "1111 1111 1111", // Time offset
@@ -44,6 +44,7 @@ int main()
         "100 1100", // Air humidity
         "10 1100 1110", // Air pressure
         "100 0101", // Battery charge level
+        "0110 1110", // Battery voltage
     };
 
     auto expectedBinaryValues2 = std::vector<const char*> {
@@ -55,11 +56,12 @@ int main()
         "011 0010", // Air humidity
         "10 1111 0110", // Air pressure
         "010 1011", // Battery charge level
+        "0100 0110", // Battery voltage
     };
 
     TestCase testCase;
     testCase.version = 1;
-    testCase.messageSize = 50;
+    testCase.messageSize = 44;
     testCase.measurements = std::vector<Measurement> {
         measurement1,
         measurement2,
@@ -87,7 +89,7 @@ void run_test_case(const TestCase& testCase) {
     test(payload.version == testCase.version, string_format("Invalid version.\nExpected: %u\nActual: %u", payload.version, testCase.version));
 
     // Test correct message size.
-    test(sizeof(payload.data) == 49, string_format("Invalid payload data size.\nExpected: 50\nActual: %zu", sizeof(payload.data)));
+    test(sizeof(payload.data) == testCase.messageSize, string_format("Invalid payload data size.\nExpected: %zu\nActual: %zu", testCase.messageSize, sizeof(payload.data)));
 
     // Fill payload with data.
     payload.fill(testCase.measurements.data(), testCase.measurements.size());

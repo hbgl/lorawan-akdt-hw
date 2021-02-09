@@ -72,6 +72,15 @@ const fieldsVersion1 = [
         accuracy: 0,
         sensor: null,
     },
+    {
+        name: 'Battery voltage',
+        unit: '%',
+        range: { min: 2.8, max: 4.2 },
+        resolution: 0.01,
+        property: 'batteryVoltage',
+        accuracy: 0,
+        sensor: null,
+    },
 ];
 // #endregion
 
