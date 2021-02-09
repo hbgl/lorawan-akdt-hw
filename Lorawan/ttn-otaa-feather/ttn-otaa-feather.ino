@@ -71,6 +71,9 @@
 #define BME_CS 10
 #define SEALEVELPRESSURE_HPA (1013.25)
 
+//for battery reading
+#define VBATPIN A7
+
 //##################################### Libraries #############################################
 //libraries for LoRa
 #include <lmic.h>
@@ -100,6 +103,9 @@ float airPress = 0;
 
 //for VEML7700
 float light = 0;
+
+//for battery reading
+float batVolt;
 
 // checking secret-config.h configuration for LoRa. File needs to be in same folder as this.
 #if !defined(APPEUI_BYTES) || !defined(DEVEUI_BYTES) || !defined(APPKEY_BYTES)
@@ -253,6 +259,14 @@ void getAirValues(){
     airHum /= 3;
 }
 
+// measureing voltage of the battery
+void getBatVolt(){
+  batVolt = analogRead(VBATPIN);
+  batVolt *= 2;
+  batVolt *= 3.3;
+  batVolt /= 1024;
+}
+
 void setup() {
     delay(5000);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -286,7 +300,7 @@ void loop() {
     getGroundValues();
     getLightValues();
     getAirValues();
-
+    getBatVolt();
     
     os_runloop_once();
 
