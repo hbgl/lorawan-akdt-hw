@@ -104,8 +104,12 @@ float airPress = 0;
 //for VEML7700
 float light = 0;
 
-//for battery reading
+//for battery measurement
 float batVolt;
+int batPerc;
+float volMax[] = {4.5, 4.2, 4.15, 4.1, 4.05, 4.0, 3.95, 3.9, 3.85, 3.8, 3.75, 3.7, 3.65, 3.6, 3.54, 3.5, 3.44, 3.4, 3.34, 3.3, 3.24};
+float volMin[] = {4.2, 4.15, 4.1, 4.05, 4.0, 3.95, 3.9, 3.85, 3.8, 3.75, 3.7, 3.65, 3.6, 3.54, 3.5, 3.44, 3.4, 3.34, 3.3, 3.24, 3.19};
+int percentage[] = {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 1, 1};
 
 // checking secret-config.h configuration for LoRa. File needs to be in same folder as this.
 #if !defined(APPEUI_BYTES) || !defined(DEVEUI_BYTES) || !defined(APPKEY_BYTES)
@@ -267,6 +271,15 @@ void getBatVolt(){
   batVolt /= 1024;
 }
 
+// converting voltage of battery to percentage
+void getBatPerc(){
+  for (int i = 0; i <= 20; i++){
+    if(batVolt < volMax[i] && batVolt >= volMin[i]){
+      batPerc = percentage[i];
+    }
+  }
+}
+
 void setup() {
     delay(5000);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -301,6 +314,7 @@ void loop() {
     getLightValues();
     getAirValues();
     getBatVolt();
+    getBatPerc();
     
     os_runloop_once();
 
