@@ -210,7 +210,7 @@ void do_send(osjob_t* j){
         //Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, payload.data, 13, 0); // TODO: Calculate payload size
+        LMIC_setTxData2(1, payload.data, payload.get_byte_count(), 0);
         //Serial.println(F("Packet queued"));
     }
 }

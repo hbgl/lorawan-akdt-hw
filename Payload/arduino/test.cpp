@@ -24,6 +24,7 @@ void append_vec(std::vector<T>& vec, const std::vector<T>& other);
 struct TestCase {
     uint8_t version;
     size_t messageSize;
+    size_t payloadByteCount;
     std::vector<Measurement> measurements;
     std::vector<const char *> expectedBinaryValues;
 };
@@ -62,6 +63,7 @@ int main()
     TestCase testCase;
     testCase.version = 1;
     testCase.messageSize = 44;
+    testCase.payloadByteCount = 44;
     testCase.measurements = std::vector<Measurement> {
         measurement1,
         measurement2,
@@ -93,6 +95,9 @@ void run_test_case(const TestCase& testCase) {
 
     // Fill payload with data.
     payload.fill(testCase.measurements.data(), testCase.measurements.size());
+
+    // Test payload byte count.
+    test(payload.get_byte_count() == testCase.payloadByteCount, string_format("Invalid payload byte count.\nExpected: %zu\nActual: %zu", testCase.payloadByteCount, payload.get_byte_count()));
 
     auto expectedBinary = join_binary_values(testCase.expectedBinaryValues);
     expectedBinary.insert(expectedBinary.end(), sizeof(payload.data) * 8 - expectedBinary.size(), '0');

@@ -56,3 +56,10 @@ void Payload::fill(const Measurement* measurements, size_t length) {
     bitWriter.write(batteryVoltageRaw, 8);
   }
 }
+size_t Payload::get_byte_count() {
+  size_t measurement_count = data[1];
+  size_t prelude_bits = 16;
+  size_t measurement_bits = 83;
+  size_t byte_count = (prelude_bits + (measurement_bits * measurement_count) + 7) >> 3;
+  return byte_count;
+}

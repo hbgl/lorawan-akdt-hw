@@ -10,9 +10,9 @@ const PAYLOAD_STRUCT_NAME = 'Payload';
 const MEASUREMENT_DATA_STRUCT_NAME = 'Measurement';
 const DATA_FIELD_NAME = 'data';
 const VERSION_FIELD_NAME = 'version';
-const MEASUREMENTS_PER_MESSAGE_FIELD_NAME = 'measurements_per_message';
 const LENGTH_FIELD_NAME = 'length';
 const FILL_FUNCTION_NAME = 'fill';
+const GET_BYTE_COUNT_FUNCTION = 'get_byte_count';
 const MEASUREMENTS_PARAM_NAME = 'measurements';
 const MEASUREMENTS_PARAM_LENGTH = 'length';
 const BIT_WRITER_HEADER = 'bit_writer.h';
@@ -45,16 +45,17 @@ function generateHeaderCode(version, context) {
     #define _AKDT_PAYLOAD_H_
 
     #include <cstdint>
+    #include <cstddef>
 
     struct ${MEASUREMENT_DATA_STRUCT_NAME} {
         ${fields.map(f => `float ${f.property};`).join('\n')}
     };
 
     struct ${PAYLOAD_STRUCT_NAME} {
-        uint8_t ${DATA_FIELD_NAME}[${context.messageBytesMax}] = { 0 };
+        uint8_t ${DATA_FIELD_NAME}[${context.sizes.messageBytesMax}] = { 0 };
         static constexpr uint8_t ${VERSION_FIELD_NAME} = ${version.number};
-        static constexpr size_t ${MEASUREMENTS_PER_MESSAGE_FIELD_NAME} = ${context.measurementsPerMessage};
         void ${FILL_FUNCTION_NAME}(const ${MEASUREMENT_DATA_STRUCT_NAME} * ${MEASUREMENTS_PARAM_NAME}, size_t ${MEASUREMENTS_PARAM_LENGTH});
+        size_t ${GET_BYTE_COUNT_FUNCTION}();
     };
 
     #endif
@@ -73,7 +74,7 @@ function generateImplementationCode(version, context) {
     #include <cmath>
     
     void ${PAYLOAD_STRUCT_NAME}::${FILL_FUNCTION_NAME}(const ${MEASUREMENT_DATA_STRUCT_NAME} * ${MEASUREMENTS_PARAM_NAME}, size_t ${MEASUREMENTS_PARAM_LENGTH}) {
-        ${MEASUREMENTS_PARAM_LENGTH} = std::min(static_cast<size_t>(${context.measurementsPerMessage}), ${MEASUREMENTS_PARAM_LENGTH});
+        ${MEASUREMENTS_PARAM_LENGTH} = std::min(static_cast<size_t>(${context.sizes.measurementsPerMessage}), ${MEASUREMENTS_PARAM_LENGTH});
     `;
 
     code += `BitWriter bitWriter(${DATA_FIELD_NAME}, 0);
@@ -131,6 +132,15 @@ function generateImplementationCode(version, context) {
     code += `}
     `; // Close function
 
+    code += `size_t ${PAYLOAD_STRUCT_NAME}::${GET_BYTE_COUNT_FUNCTION}() {
+        size_t measurement_count = data[1];
+        size_t prelude_bits = ${context.sizes.preludeBits};
+        size_t measurement_bits = ${context.sizes.measurementBits};
+        size_t byte_count = (prelude_bits + (measurement_bits * measurement_count) + 7) >> 3;
+        return byte_count;
+    }
+    `; // Close function
+
     return code;
 }
 
@@ -147,8 +157,7 @@ function generateArduinoCode(version, options) {
     if (messageSize.messageBitsMin > messageSize.payloadBitsMax) {
         throw new Error(`The payload must not exceed ${messageSize.payloadBitsMax} bits. Minimum required payload size: ${messageSize.messageBitsMin} bits.`);
     }
-    context.messageBytesMax = messageSize.messageBytesMax;
-    context.measurementsPerMessage = messageSize.measurementsPerMessage;
+    context.sizes = messageSize;
 
     const headerCode = generateHeaderCode(version, context);
     const beautifiedHeaderCode = formatCode(headerCode);

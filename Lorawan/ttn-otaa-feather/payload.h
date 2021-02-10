@@ -19,8 +19,8 @@ struct Measurement {
 struct Payload {
   uint8_t data[44] = {0};
   static constexpr uint8_t version = 1;
-  static constexpr size_t measurements_per_message = 4;
   void fill(const Measurement* measurements, size_t length);
+  size_t get_byte_count();
 };
 
 #endif
