@@ -87,11 +87,17 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_SleepyDog.h>
+#include "payload.h"
 
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
 Adafruit_BME280 bme;
 
 //##################################### Variables #############################################
+auto loraloop = false;
+
+auto measurement = Measurement();
+auto payload = Payload();
+
 //for SMT50
 float groundTemp = 0;
 float groundHum = 0;
@@ -134,7 +140,6 @@ void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 static const u1_t PROGMEM APPKEY[16] = { APPKEY_BYTES };
 void os_getDevKey (u1_t* buf) {  memcpy_P(buf, APPKEY, 16);}
 
-static uint8_t mydata[] = "Hello, world!";
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -171,8 +176,11 @@ void printHex2(unsigned v) {
 
 void onEvent (ev_t ev) {
     switch(ev) {
-
+        case EV_JOINING:
+            //Serial.println(F("EV_JOINING"));
+            break;
         case EV_JOINED:
+            //Serial.println(F("EV_JOINED"));
             {
               u4_t netid = 0;
               devaddr_t devaddr = 0;
@@ -180,10 +188,15 @@ void onEvent (ev_t ev) {
               u1_t artKey[16];
               LMIC_getSessionKeys(&netid, &devaddr, nwkKey, artKey);
             }
-
+        case EV_TXSTART:
+            //Serial.println(F("EV_TXSTART"));
+            break;
         case EV_TXCOMPLETE:
-            // Schedule next transmission
-            os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
+            //Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+            loraloop = false;
+            break;
+        case EV_JOIN_TXCOMPLETE:
+            //Serial.println(F("EV_JOIN_TXCOMPLETE: no JoinAccept"));
             break;
         default:
             break;
@@ -197,7 +210,8 @@ void do_send(osjob_t* j){
         //Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+        LMIC_setTxData2(1, payload.data, 13, 0); // TODO: Calculate payload size
+        //Serial.println(F("Packet queued"));
     }
 }
 
@@ -225,6 +239,9 @@ void setupBME280(){
 
 // measurement of ground values with SMT50 sensor
 void getGroundValues(){
+  groundTemp = 0;
+  groundHum = 0;
+  
   // three measurements to smooth out deviation
   for (int i = 0; i <= 2; i++){
     groundTemp += analogRead(groundTempPin);
@@ -242,6 +259,8 @@ void getGroundValues(){
 
 // measurement of light with Veml7700 sensor
 void getLightValues(){
+  light = 0;
+  
   // three measurements to smooth out deviation
   for (int i = 0; i <= 2; i++){
     light += veml.readLux();
@@ -251,6 +270,10 @@ void getLightValues(){
 
 // measurement of air values with BME280 sensor
 void getAirValues(){
+  airTemp = 0;
+  airPress = 0;
+  airHum = 0;
+  
   // three measurements to smooth out deviation
   for (int i = 0; i <= 2; i++){
     airTemp += bme.readTemperature();
@@ -258,9 +281,9 @@ void getAirValues(){
     airHum += bme.readHumidity();
   }
   
-    airTemp /= 3;
-    airPress /= 3;
-    airHum /= 3;
+  airTemp /= 3;
+  airPress /= 3;
+  airHum /= 3;
 }
 
 // measureing voltage of the battery
@@ -282,6 +305,8 @@ void getBatPerc(){
 
 void setup() {
     delay(5000);
+//    while (! Serial)
+//        ;
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
     setupVeml7700();
@@ -300,10 +325,7 @@ void setup() {
     LMIC_reset();
 
     LMIC_setLinkCheckMode(0);
-    LMIC_setDrTxpow(DR_SF12,14);
-
-    // Start job (sending automatically starts OTAA too)
-    do_send(&sendjob);
+    LMIC_setDrTxpow(DR_SF7,14);
 }
 
 void loop() {
@@ -315,12 +337,30 @@ void loop() {
     getAirValues();
     getBatVolt();
     getBatPerc();
-    
-    os_runloop_once();
+
+    measurement.timeOffset = 0;
+    measurement.temperatureGround = groundTemp;
+    measurement.moistureGround = groundHum;
+    measurement.light = light;
+    measurement.temperatureAir = airTemp;
+    measurement.moistureAir = airHum;
+    measurement.pressure = airPress;
+    measurement.battery = batPerc;
+    measurement.batteryVoltage = batVolt;
+    payload.fill(&measurement, 1);
+
+    // Start job (sending automatically starts OTAA too)
+    do_send(&sendjob);
+
+    loraloop = true;
+    while (loraloop) {
+      os_runloop_once(); 
+    }
 
     digitalWrite(LED_BUILTIN, LOW);
     delay(1000);
-    for(int i = 0; i <= 2; i++){  //449 mal für eine Stunde
+
+    for(int i = 0; i <= 1; i++){  //449 mal für eine Stunde
       Watchdog.sleep(8000);
     } 
 }
