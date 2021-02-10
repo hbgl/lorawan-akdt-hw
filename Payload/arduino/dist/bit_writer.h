@@ -2,6 +2,7 @@
 #define _AKDT_BIT_WRITER_H_
 
 #include <cstdint>
+#include <cstddef>
 
 /**
  * Writes bits to an array of bytes.

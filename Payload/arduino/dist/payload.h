@@ -2,6 +2,7 @@
 #define _AKDT_PAYLOAD_H_
 
 #include <cstdint>
+#include <cstddef>
 
 struct Measurement {
   float timeOffset;
