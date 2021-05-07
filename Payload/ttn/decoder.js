@@ -54,7 +54,16 @@ function Decoder(bytes, _port) {
     return decoded;
 }
 
+function decodeUplink(input) {
+    return {
+        data: Decoder(input.bytes, input.port),
+        warnings: [],
+        errors: [],
+    };
+}
+
 if (typeof ttnglobal !== 'undefined') {
     ttnglobal.Decoder = Decoder;
+    ttnglobal.decodeUplink = decodeUplink;
 }
 module.exports = Decoder;
