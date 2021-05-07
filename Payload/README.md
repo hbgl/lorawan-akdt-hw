@@ -4,7 +4,7 @@
 
 ## Nachrichtenfelder definieren
 
-Die Felddefinitionen befindet sich in der Datei `versions.js`. Dort können neue Nachrichtenformate definiert werden können. Jedes Format besitzt eine Versionsnummer und sollte nicht mehr geändert werden, nachdem es einmal ausgerollt wurde. Stattdessen muss immer eine neue Version erstellt werden, wodurch sichergestellt wird, dass auch solche Endgeräte noch Nachrichten senden können, die mit einer älteren Version laufen.
+Die Felddefinitionen befindet sich in der Datei `versions.js`. Dort können neue Nachrichtenformate definiert werden. Jedes Format besitzt eine Versionsnummer und sollte nicht mehr geändert werden, nachdem es einmal ausgerollt wurde. Stattdessen muss immer eine neue Version erstellt werden, wodurch sichergestellt wird, dass auch solche Endgeräte noch Nachrichten senden können, die mit einer älteren Version laufen.
 
 ### Payload-Dekodierfunktion erstellen
 
