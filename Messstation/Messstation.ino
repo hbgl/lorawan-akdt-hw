@@ -26,8 +26,10 @@
 #include <Adafruit_SleepyDog.h>
 
 //for SMT50
-#define groundTempPin A0
-#define groundHumPin A1
+#define GROUND_TEMP_PIN A0
+#define GROUND_HUM_PIN A1
+#define GROUND_ENABLE_PIN A2
+#define GROUND_ENABLE_DELAY 500
 
 // for BME280
 #define BME_SCK 13
@@ -53,12 +55,20 @@ float light = 0;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH); // Disable
+  //digitalWrite(LED_BUILTIN, LOW); // Enable
+  
+  delay(5000);
+  while (! Serial) {}
+  
   setupVeml7700();
   setupBME280();
 }
 
 void loop() {
+  pinMode(GROUND_ENABLE_PIN, OUTPUT);
+  digitalWrite(GROUND_ENABLE_PIN, HIGH);
+  
   digitalWrite(LED_BUILTIN, HIGH);
   delay(1000);
   
@@ -66,11 +76,14 @@ void loop() {
   getLightValues();
   getAirValues();
 
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1000);
-  for(int i = 0; i <= 2; i++){  //449 mal für eine Stunde
-    Watchdog.sleep(8000);
-  } 
+  printValues();
+  delay(2000);
+
+//  digitalWrite(LED_BUILTIN, LOW);
+//  delay(1000);
+//  for(int i = 0; i <= 2; i++){  //449 mal für eine Stunde
+//    Watchdog.sleep(8000);
+//  } 
 }
 
 void setupVeml7700(){
@@ -87,20 +100,41 @@ void setupVeml7700(){
 }
 
 void setupBME280(){
-    unsigned status;
-    
-    // default settings
-    status = bme.begin(0x76);
+    if (!bme.begin(0x76)) {
+      Serial.println("Could not initialize BME280");
+      while (1);
+    }
+    bme.setSampling(Adafruit_BME280::MODE_FORCED,
+                    Adafruit_BME280::SAMPLING_X1, // temperature
+                    Adafruit_BME280::SAMPLING_X1, // pressure
+                    Adafruit_BME280::SAMPLING_X1, // humidity
+                    Adafruit_BME280::FILTER_OFF);
+}
+
+void enableGroundSensor() {  
+  //Serial.println("Enable ground");
+  digitalWrite(GROUND_ENABLE_PIN, LOW);
+  delay(GROUND_ENABLE_DELAY);
+  //Serial.println("Ground enabled");
+}
+
+void disableGroundSensor() {
+  //Serial.println("Disable ground"); 
+  digitalWrite(GROUND_ENABLE_PIN, HIGH);
 }
 
 void getGroundValues(){
-  groundTemp = analogRead(groundTempPin);
+  enableGroundSensor();
+  
+  groundTemp = analogRead(GROUND_TEMP_PIN);
   groundTemp = groundTemp * 2 * 3.3 /1024;
   groundTemp = ((groundTemp / 2) - 0.5) * 100;
 
-  groundHum = analogRead(groundHumPin);
+  groundHum = analogRead(GROUND_HUM_PIN);
   groundHum = groundHum * 2 * 3.3 /1024;
   groundHum = groundHum / 2 * 50 / 3;
+  
+  disableGroundSensor();
 }
 
 void getLightValues(){
@@ -108,7 +142,39 @@ void getLightValues(){
 }
 
 void getAirValues(){
+    // Only needed in forced mode! In normal mode, you can remove the next line.
+    bme.takeForcedMeasurement(); // has no effect in normal mode
+  
     airTemp = bme.readTemperature();
     airPress = bme.readPressure() / 100.0F;
     airHum = bme.readHumidity();
+}
+
+void printValues() {
+  Serial.println(groundTemp );
+//  Serial.print("Air temp: ");
+//  Serial.print(airTemp);
+//  Serial.println(" deg Celsius");
+//
+//  Serial.print("Air hum: ");
+//  Serial.print(airHum);
+//  Serial.println("%");
+//
+//  Serial.print("Air press: ");
+//  Serial.print(airPress);
+//  Serial.println(" hPa");
+//
+//  Serial.print("Ground temp: ");
+//  Serial.print(groundTemp );
+//  Serial.println(" deg Celsius");
+//
+//  Serial.print("Ground hum: ");
+//  Serial.print(groundHum);
+//  Serial.println("%");
+//
+//  Serial.print("Luminance: ");
+//  Serial.print(light);
+//  Serial.println(" Lux");
+//
+//  Serial.println("-------------------------------------------");
 }
