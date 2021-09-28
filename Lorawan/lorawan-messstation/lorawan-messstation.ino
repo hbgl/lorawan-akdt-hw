@@ -218,6 +218,10 @@ void do_send(osjob_t* j){
     Serial.println(airHum);
     Serial.print("Light: ");
     Serial.println(light);
+    Serial.print("BatV: ");
+    Serial.println(batteryReading.voltage);
+    Serial.print("Bat%: ");
+    Serial.println(batteryReading.percentage);
     auto payloadByteCount = payload.get_byte_count();
     Serial.print("Payload:");
     Serial.println(payloadByteCount);

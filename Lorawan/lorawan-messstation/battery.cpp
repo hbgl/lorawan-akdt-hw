@@ -13,7 +13,8 @@ void battery_init() {
 }
 
 BatteryReading battery_read() {
-    float voltage = analogRead(BATTERY_PIN) * (BATTERY_REFERENCE_VOLTAGE / 1024);
+    float raw = analogRead(BATTERY_PIN);
+    float voltage = raw * 2.0f * (BATTERY_REFERENCE_VOLTAGE / 1024.0f);
     int percentage = 0;
 
     size_t length = sizeof(voltages) / sizeof(float);
