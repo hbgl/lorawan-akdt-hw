@@ -51,7 +51,7 @@
  *******************************************************************************/
 
 // Define at the top so all includes see it.
-#define APP_DEBUG true
+#define APP_DEBUG false
 
 #include <lmic.h>
 #include <hal/hal.h>
@@ -77,13 +77,13 @@
 
 // Use regular delay while debugging to be able to print
 // to the serial port without losing serial connection.
-#define APP_SLEEP_DELAY true
+#define APP_SLEEP_DELAY false
 #define APP_SLEEP_DELAY_MS 60000
 
 // Use watchdog in production to save power.
-#define APP_SLEEP_WATCHDOG false
+#define APP_SLEEP_WATCHDOG true
 #define APP_SLEEP_WATCHDOG_MS 16000
-#define APP_SLEEP_WATCHDOG_MULTIPLIER 4
+#define APP_SLEEP_WATCHDOG_MULTIPLIER 112
 
 // BME280 configuration.
 #define BME_SCK 13
