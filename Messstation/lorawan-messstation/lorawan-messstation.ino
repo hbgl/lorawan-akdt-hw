@@ -85,6 +85,11 @@
 #define APP_SLEEP_WATCHDOG_MS 16000
 #define APP_SLEEP_WATCHDOG_MULTIPLIER 112
 
+// Reset config
+#define RESET_PIN A5
+#define RESET_ON_FATAL_ERROR true
+#define RESET_BLINK_COUNT 10
+
 // BME280 configuration.
 #define BME_SCK 13
 #define BME_MISO 12
@@ -101,28 +106,53 @@ auto bme = Adafruit_BME280();
 auto payload = Payload();
 static osjob_t sendjob;
 
+void blink_error() {
+#if APP_BLINK_LED
+    // Blink short, short, short if the application encounters an unrecoverable error.
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(3000);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+#endif
+}
+
 int error_handler() {
-    while (1) {
-    #if APP_BLINK_LED
-        // Do a little bit of blinking if the application encounters
-        // an unrecoverable error.
-        digitalWrite(LED_BUILTIN, LOW);
-        delay(3000);
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(500);
-        digitalWrite(LED_BUILTIN, LOW);
-        delay(500);
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(500);
-        digitalWrite(LED_BUILTIN, LOW);
-        delay(500);
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(500);
-    #else
-        // There is nothing to do. Just spin.
+#if APP_DEBUG
+    Serial.println("Fatal error encountered.");
+#endif
+    
+#if RESET_ON_FATAL_ERROR
+    // Blink a couple of times then reset.
+    for (int i = RESET_BLINK_COUNT; i > 0; i--) {
+    #if APP_DEBUG
+        Serial.print(i);
+        Serial.println(" blinks before reset.");
     #endif
+        blink_error();
     }
-    return 0; // Never reached
+#if APP_DEBUG
+    Serial.println("Reset now.");
+#endif
+    // Reset
+    digitalWrite(RESET_PIN, LOW);
+    // If the reset pin is not connected then we fall through and just blink.
+#endif
+
+#if APP_DEBUG
+    Serial.println("Blink forever.");
+#endif
+    while (1) {
+        blink_error();
+    }
+    return 0;
 }
 
 void onEvent (ev_t ev) {
@@ -277,12 +307,16 @@ void veml7700_init(){
 }
 
 void setup() {
-    delay(5000);
+    // Init reset pin.
+    digitalWrite(RESET_PIN, HIGH);
+    pinMode(RESET_PIN, OUTPUT); 
+    
+    delay(2000);
+    
+    // Turn off LED.
+    digitalWrite(LED_BUILTIN, LOW);
 
-#if APP_BLINK_LED
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
-#endif
+    delay(3000);
 
     // Init sensors.
     battery_init();
@@ -311,11 +345,26 @@ void setup() {
     // minimizes air time and battery power. Set the transmission power to 14 dBi (25 mW).
     LMIC_setDrTxpow(DR_SF7,14);
 
+#if APP_DEBUG
+    Serial.println("Setup complete.");
+#endif
+
+#if APP_BLINK_LED
+    // Blink short, short after setup.
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+#endif
+
     // Start job (sending automatically starts OTAA too).
     do_send(&sendjob);
 }
 
-void loop() {
+void loop() {    
     // We call the LMIC's runloop processor. This will cause things to happen based on events and time. One
     // of the things that will happen is callbacks for transmission complete or received messages. We also
     // use this loop to queue periodic data transmissions.  You can put other things here in the `loop()` routine,
@@ -333,14 +382,17 @@ void loop() {
 
     // If we reach this point, we are free to do whatever we want
     // because there are no pending LoRaWAN tasks.
-
-#if APP_BLINK_LED
-    digitalWrite(LED_BUILTIN, LOW);
-#endif
     
 #if APP_DEBUG
     Serial.println("Go to sleep");
     Serial.println("---------------------------------------------------------------------");
+#endif
+
+#if APP_BLINK_LED
+    // Blink long before sleeping.
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
 #endif
 
     // Sleep.
@@ -359,7 +411,14 @@ void loop() {
 #endif
 
 #if APP_BLINK_LED
+    // Blink short, short after waking.
     digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
 #endif
 
     // Send next job.
